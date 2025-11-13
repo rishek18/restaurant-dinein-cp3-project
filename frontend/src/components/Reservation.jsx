@@ -12,6 +12,12 @@ const timeSlots = [
   "19:30 - 21:00", "21:00 - 22:30",
 ];
 
+// Predefined dishes for pre-ordering
+const availableDishes = [
+  "Signature Steak", "Grilled Salmon", "Mushroom Risotto", 
+  "Caesar Salad", "Chocolate Lava Cake", "Cheesecake"
+];
+
 const Reservation = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -20,16 +26,28 @@ const Reservation = () => {
   const [time, setTime] = useState("");
   const [phone, setPhone] = useState("");
   const [tableNumber, setTableNumber] = useState("");
+  // 1. ADD STATE FOR DISHES
+  const [dishes, setDishes] = useState([]); 
   const navigate = useNavigate();
+
+  // Function to handle checkbox changes for dishes
+  const handleDishChange = (dish) => {
+    setDishes((prevDishes) =>
+      prevDishes.includes(dish)
+        ? prevDishes.filter((d) => d !== dish) // Uncheck: remove dish
+        : [...prevDishes, dish] // Check: add dish
+    );
+  };
 
   const handleReservation = async (e) => {
     e.preventDefault();
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
       const { data } = await axios.post(
-        `${backendUrl}/reservation/send`,
-        // The 'dishes' array is no longer sent
-        { firstName, lastName, email, phone, date, time, tableNumber },
+        // 2. FIX THE URL HERE by adding /api/v1
+        `${backendUrl}/api/v1/reservation/send`,
+        // 3. ADD 'dishes' to the data being sent
+        { firstName, lastName, email, phone, date, time, tableNumber, dishes },
         {
           headers: { "Content-Type": "application/json" },
           withCredentials: true,
@@ -39,6 +57,7 @@ const Reservation = () => {
       setFirstName(""); setLastName(""); setPhone("");
       setEmail(""); setTime(""); setDate("");
       setTableNumber("");
+      setDishes([]); // Clear selected dishes
       navigate("/success");
     } catch (error) {
       toast.error(error.response.data.message);
@@ -77,7 +96,24 @@ const Reservation = () => {
                 <input type="number" placeholder="Table Number" value={tableNumber} onChange={(e) => setTableNumber(e.target.value)} required min="1"/>
               </div>
 
-              {/* The dishes section has been completely removed from the form */}
+              {/* 4. ADD THE DISHES CHECKLIST BACK IN */}
+              <div className="dishes-container">
+                <h4>Pre-order Dishes (Optional)</h4>
+                <div className="dishes-grid">
+                  {availableDishes.map((dish) => (
+                    <div key={dish} className="dish-item">
+                      <input
+                        type="checkbox"
+                        id={dish}
+                        value={dish}
+                        checked={dishes.includes(dish)}
+                        onChange={() => handleDishChange(dish)}
+                      />
+                      <label htmlFor={dish}>{dish}</label>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
               <button type="submit">RESERVE NOW <span><HiOutlineArrowNarrowRight /></span></button>
             </form>
