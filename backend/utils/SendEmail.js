@@ -1,3 +1,4 @@
+// Forcing a new deployment to test email sending functionality with added logging.
 import nodemailer from "nodemailer";
 
 export const sendEmail = async (options) => {
